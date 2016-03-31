@@ -104,6 +104,22 @@ class StatefulEnumTest < ActiveSupport::TestCase
     end
   end
 
+  def test_if_unless_condition
+    bug = Bug.new
+    bug.assigned_to = User.create!(name: 'user 1')
+    assert_nothing_raised do
+      bug.assign_with_if_unless!
+    end
+  end
+
+  def test_mutual_explicit_if_unless_condition
+    bug = Bug.new
+    bug.assigned_to = User.create!(name: 'user 1')
+    assert_raises do
+      bug.assign_with_mutual_explicit_if_unless!
+    end
+  end
+
   def test_enum_definition_with_array
     ActiveRecord::Migration.create_table(:array_enum_test) {|t| t.integer :col }
     tes = Class.new(ActiveRecord::Base) do

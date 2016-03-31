@@ -12,6 +12,14 @@ class Bug < ActiveRecord::Base
       transition :unassigned => :assigned, unless: -> { !assigned_to }
     end
 
+    event :assign_with_if_unless do
+      transition :unassigned => :assigned, if: -> { true }, unless: -> { false }
+    end
+
+    event :assign_with_mutual_explicit_if_unless do
+      transition :unassigned => :assigned, if: -> { true }, unless: -> { true }
+    end
+
     event :resolve do
       before do
         self.resolved_at = Time.zone.now

@@ -79,10 +79,13 @@ module StatefulEnum
 
       def transition(transitions, options = {})
         if options.blank?
-          options[:if] = transitions.delete :if
-          #TODO should err if if & unless were specified together?
+          options[:if] = if_condition = transitions.delete :if
           if (unless_condition = transitions.delete :unless)
-            options[:if] = -> { !instance_exec(&unless_condition) }
+            options[:if] = -> {
+              unless_outcome = instance_exec(&unless_condition)
+              raise 'Transition if & unless conditions are mutually exclusive' if if_condition && instance_exec(&if_condition) && unless_outcome
+              !unless_outcome
+            }
           end
         end
         transitions.each_pair do |from, to|
