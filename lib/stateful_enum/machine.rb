@@ -83,7 +83,7 @@ module StatefulEnum
           if (unless_condition = transitions.delete :unless)
             options[:if] = -> {
               unless_outcome = instance_exec(&unless_condition)
-              raise 'Transition if & unless conditions are mutually exclusive' if if_condition && instance_exec(&if_condition) && unless_outcome
+              raise 'Transition if & unless conditions are mutually exclusive' if if_condition && instance_exec(&if_condition) == unless_outcome
               !unless_outcome
             }
           end
