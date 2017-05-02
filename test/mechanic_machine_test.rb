@@ -104,6 +104,16 @@ class StatefulEnumTest < ActiveSupport::TestCase
     end
   end
 
+  def test_inherited_model
+    post = Post.new
+    post.publish!
+    assert_equal 'published', post.status
+
+    quote_post = QuotePost.new
+    quote_post.publish!
+    assert_equal 'published', quote_post.status
+  end
+
   def test_enum_definition_with_array
     ActiveRecord::Migration.create_table(:array_enum_test) {|t| t.integer :col }
     tes = Class.new(ActiveRecord::Base) do

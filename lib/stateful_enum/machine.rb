@@ -3,7 +3,7 @@
 module StatefulEnum
   class Machine
     def initialize(model, column, states, prefix, suffix, &block)
-      @model, @column, @states, @event_names = model, column, states, []
+      @model, @column, @states, @event_names, @original_methods = model, column, states, [], {}
       @prefix = if prefix == true
                   "#{column}_"
                 elsif prefix
@@ -17,6 +17,7 @@ module StatefulEnum
 
       # undef non-verb methods e.g. Model#active!
       states.each do |state|
+        @original_methods[state] = @model.instance_method "#{@prefix}#{state}#{@suffix}!"
         @model.send :undef_method, "#{@prefix}#{state}#{@suffix}!"
       end
 
@@ -25,12 +26,12 @@ module StatefulEnum
 
     def event(name, &block)
       raise ArgumentError, "event: :#{name} has already been defined." if @event_names.include? name
-      Event.new @model, @column, @states, @prefix, @suffix, name, &block
+      Event.new @model, @column, @states, @original_methods, @prefix, @suffix, name, &block
       @event_names << name
     end
 
     class Event
-      def initialize(model, column, states, prefix, suffix, name, &block)
+      def initialize(model, column, states, original_methods, prefix, suffix, name, &block)
         @states, @name, @transitions, @before, @after = states, name, {}, nil, nil
 
         instance_eval(&block) if block
@@ -48,7 +49,7 @@ module StatefulEnum
             if to && (!condition || instance_exec(&condition))
               #TODO transaction?
               instance_eval(&before) if before
-              original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
+              original_method = original_methods[to]
               ret = original_method.bind(self).call
               instance_eval(&after) if after
               ret
