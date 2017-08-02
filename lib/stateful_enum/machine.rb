@@ -48,7 +48,7 @@ module StatefulEnum
             if to && (!condition || instance_exec(&condition))
               #TODO transaction?
               instance_eval(&before) if before
-              original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
+              original_method = self.class.base_class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
               ret = original_method.bind(self).call
               instance_eval(&after) if after
               ret
