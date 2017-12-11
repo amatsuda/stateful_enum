@@ -108,7 +108,8 @@ There are a few important details to note regarding this feature:
 
 ### :if and :unless Condition
 
-The `transition` method takes an `:if` or `:unless` option as a Proc.
+The `transition` method takes an `:if` or/and `:unless` option as a Proc.
+Mutually exclusive `:if` and `:unless` conditions though will raise an error.
 
 Example:
 ```ruby
