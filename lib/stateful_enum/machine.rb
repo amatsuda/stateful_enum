@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'stateful_enum/invalid_transition'
+
 module StatefulEnum
   class Machine
     attr_reader :events
@@ -66,9 +68,10 @@ module StatefulEnum
           end
 
           # def assign!()
-          detect_enum_conflict! column, "#{value_method_name}!"
-          define_method "#{value_method_name}!" do
-            send(value_method_name) || raise('Invalid transition')
+          value_method_name_bang = "#{value_method_name}!"
+          detect_enum_conflict! column, value_method_name_bang
+          define_method value_method_name_bang do
+            send(value_method_name) || raise(InvalidTransition.new(send(column), value_method_name_bang.to_sym))
           end
 
           # def can_assign?()

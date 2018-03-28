@@ -45,10 +45,14 @@ class StatefulEnumTest < ActiveSupport::TestCase
   def test_invalid_transition!
     bug = Bug.new
     bug.resolve!
-    assert_raises do
-      bug.assign!
-    end
+    exception =
+      assert_raises(StatefulEnum::InvalidTransition) do
+        bug.assign!
+      end
     assert_equal 'resolved', bug.status
+    assert_equal 'Invalid transition from state "resolved" via event :assign!', exception.message
+    assert_equal 'resolved', exception.state
+    assert_equal :assign!, exception.event
   end
 
   def test_can_xxxx?
