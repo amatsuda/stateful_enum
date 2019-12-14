@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'stateful_enum/errors/invalid_transition'
 
 module StatefulEnum
   class Machine
@@ -68,7 +69,8 @@ module StatefulEnum
           # def assign!()
           detect_enum_conflict! column, "#{value_method_name}!"
           define_method "#{value_method_name}!" do
-            send(value_method_name) || raise('Invalid transition')
+            send(value_method_name) ||
+              raise( Errors::InvalidTransition.new(send(column), "#{value_method_name}!".to_sym) )
           end
 
           # def can_assign?()
