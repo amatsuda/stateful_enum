@@ -18,6 +18,21 @@ module StatefulEnum
         @model.send :undef_method, "#{@prefix}#{state}#{@suffix}!"
       end
 
+      model.define_method("#{column}=") do |value|
+        return super(value) if (old_state = send(column).to_s).empty?
+
+        possible_states = stateful_enum.possible_states
+        result          = super(value)
+        new_state       = send(column).to_s
+
+        if (old_state != new_state) && !new_state.to_sym.in?(possible_states)
+          write_attribute(column, old_state)
+          raise('Invalid transition')
+        end
+
+        result
+      end
+
       instance_eval(&block) if block
     end
 
