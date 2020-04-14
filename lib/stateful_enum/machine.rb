@@ -26,7 +26,8 @@ module StatefulEnum
         new_state       = send(column).to_s
 
         if (old_state != new_state) && !new_state.to_sym.in?(possible_states)
-          send(:write_attribute, column, old_state)
+          states = model.send(column.to_s.pluralize)
+          send(:write_attribute, column, states[old_state])
           raise('Invalid transition')
         end
 
