@@ -18,7 +18,7 @@ module StatefulEnum
         @model.send :undef_method, "#{@prefix}#{state}#{@suffix}!"
       end
 
-      model.define_method("#{column}=") do |value|
+      model.send(:define_method, "#{column}=") do |value|
         return super(value) if (old_state = send(column).to_s).empty?
 
         possible_states = stateful_enum.possible_states
