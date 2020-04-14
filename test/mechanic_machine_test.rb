@@ -3,6 +3,22 @@
 require 'test_helper'
 
 class StatefulEnumTest < ActiveSupport::TestCase
+  def test_transition_on_enum_setter
+    bug = Bug.new
+    assert_equal 'unassigned', bug.status
+    bug.status = 'resolved'
+    assert_equal 'resolved', bug.status
+  end
+
+  def test_invalid_transition_on_enum_setter!
+    bug = Bug.new
+    bug.resolve!
+    assert_raises do
+      bug.status = 'assigned'
+    end
+    assert_equal 'resolved', bug.status
+  end
+
   def test_transition
     bug = Bug.new
     assert_equal 'unassigned', bug.status
