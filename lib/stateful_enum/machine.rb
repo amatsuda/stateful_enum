@@ -82,7 +82,7 @@ module StatefulEnum
           detect_enum_conflict! column, "can_#{value_method_name}?"
           define_method "can_#{value_method_name}?" do
             state = send(column).try! :to_sym
-            return false if !state || !transitions.key?(state)
+            return false if state.nil? || !transitions.key?(state)
             _to, condition = transitions[state]
             condition.nil? || instance_exec(&condition)
           end
