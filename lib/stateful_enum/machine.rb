@@ -18,20 +18,11 @@ module StatefulEnum
         @model.send :undef_method, "#{@prefix}#{state}#{@suffix}!"
       end
 
-      model.send(:define_method, "#{column}=") do |value|
-        return super(value) if (old_state = send(column).to_s).empty?
+      model.validate(if: -> { send("#{column}_changed?") && send("#{column}_was") }) do
+        before, after   = send("#{column}_change")
+        possible_states = self.class.new(column => before).stateful_enum.possible_states
 
-        possible_states = stateful_enum.possible_states
-        result          = super(value)
-        new_state       = send(column).to_s
-
-        if (old_state != new_state) && !new_state.to_sym.in?(possible_states)
-          states = model.send(column.to_s.pluralize)
-          send(:write_attribute, column, states[old_state])
-          raise('Invalid transition')
-        end
-
-        result
+        errors.add(column, :invalid) unless after.to_sym.in?(possible_states)
       end
 
       instance_eval(&block) if block
