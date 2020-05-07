@@ -81,8 +81,8 @@ module StatefulEnum
           # def can_assign?()
           detect_enum_conflict! column, "can_#{value_method_name}?"
           define_method "can_#{value_method_name}?" do
-            state = send(column).to_sym
-            return false unless transitions.key? state
+            state = send(column).try! :to_sym
+            return false if !state || !transitions.key?(state)
             _to, condition = transitions[state]
             condition.nil? || instance_exec(&condition)
           end
