@@ -20,7 +20,7 @@ module StatefulEnum
 
       model.validate(if: -> { send("#{column}_changed?") && send("#{column}_was") }) do
         before, after   = send("#{column}_change")
-        possible_states = self.class.new(column => before).stateful_enum.possible_states
+        possible_states = self.class.new(column => before).stateful_enum_for(column).possible_states
 
         errors.add(column, :invalid) unless after.to_sym.in?(possible_states)
       end
