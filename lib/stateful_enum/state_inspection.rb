@@ -18,7 +18,7 @@ module StatefulEnum
       end
     end
 
-    def stateful_enum_for(column)
+    def stateful_enum_for(column:)
       StateInspector.new(self.class.stateful_enum[column.to_sym], self)
     end
   end
