@@ -18,6 +18,13 @@ module StatefulEnum
         @model.send :undef_method, "#{@prefix}#{state}#{@suffix}!"
       end
 
+      model.validate(if: -> { send("#{column}_changed?") && send("#{column}_was") }) do
+        before, after   = send("#{column}_change")
+        possible_states = self.class.new(column => before).stateful_enum_for(column: column).possible_states
+
+        errors.add(column, :invalid) unless after.to_sym.in?(possible_states)
+      end
+
       instance_eval(&block) if block
     end
 
@@ -74,8 +81,8 @@ module StatefulEnum
           # def can_assign?()
           detect_enum_conflict! column, "can_#{value_method_name}?"
           define_method "can_#{value_method_name}?" do
-            state = send(column).to_sym
-            return false unless transitions.key? state
+            state = send(column).try! :to_sym
+            return false if state.nil? || !transitions.key?(state)
             _to, condition = transitions[state]
             condition.nil? || instance_exec(&condition)
           end
