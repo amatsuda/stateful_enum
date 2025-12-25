@@ -42,24 +42,23 @@ module StatefulEnum
           # def assign()
           detect_enum_conflict! column, value_method_name
 
-          # defining callbacks
-          define_callbacks value_method_name
-          before.each do |before_callback|
-            model.set_callback value_method_name, :before, before_callback
-          end
-          after.each do |after_callback|
-            model.set_callback value_method_name, :after, after_callback
-          end
-
           define_method value_method_name do
             to, condition = transitions[send(column).to_sym]
             #TODO better error
             if to && (condition.nil? || instance_exec(&condition))
               #TODO transaction?
-              run_callbacks value_method_name do
-                original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
-                original_method.bind(self).call
+              before.each do |before_callback|
+                instance_exec(&before_callback)
               end
+
+              original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
+              ret = original_method.bind(self).call
+
+              after.each do |after_callback|
+                instance_exec(&after_callback)
+              end
+
+              ret
             else
               false
             end
