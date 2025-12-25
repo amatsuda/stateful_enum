@@ -42,20 +42,20 @@ module StatefulEnum
           # def assign()
           detect_enum_conflict! column, value_method_name
 
-          define_method value_method_name do
+          define_method value_method_name do |*args, **kwargs|
             to, condition = transitions[send(column).to_sym]
             #TODO better error
             if to && (condition.nil? || instance_exec(&condition))
               #TODO transaction?
               before.each do |before_callback|
-                instance_exec(&before_callback)
+                instance_exec(*args, **kwargs, &before_callback)
               end
 
               original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
               ret = original_method.bind(self).call
 
               after.each do |after_callback|
-                instance_exec(&after_callback)
+                instance_exec(*args, **kwargs, &after_callback)
               end
 
               ret
@@ -66,8 +66,8 @@ module StatefulEnum
 
           # def assign!()
           detect_enum_conflict! column, "#{value_method_name}!"
-          define_method "#{value_method_name}!" do
-            send(value_method_name) || raise('Invalid transition')
+          define_method "#{value_method_name}!" do |*args, **kwargs|
+            send(value_method_name, *args, **kwargs) || raise('Invalid transition')
           end
 
           # def can_assign?()

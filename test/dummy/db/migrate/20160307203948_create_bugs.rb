@@ -8,6 +8,7 @@ class CreateBugs < (Rails::VERSION::MAJOR >= 5 ? ActiveRecord::Migration[5.0] : 
       t.integer :status, default: 0
       t.integer :assigned_to_id
       t.datetime :resolved_at
+      t.string :reopen_reason
 
       t.timestamps null: false
     end

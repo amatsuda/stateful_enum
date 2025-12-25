@@ -100,6 +100,31 @@ class StatefulEnumTest < ActiveSupport::TestCase
     end
   end
 
+  def test_before_callback_receives_args
+    bug = Bug.new
+    bug.close!
+    assert_nil bug.reopen_reason
+    bug.reopen(reason: 'not fixed')
+    assert_equal 'not fixed', bug.reopen_reason
+  end
+
+  def test_after_callback_receives_args
+    bug = Bug.new
+    bug.close!
+    assert_difference 'Bug::Notifier.messages.count' do
+      bug.reopen(reason: 'still failing')
+    end
+    assert_includes Bug::Notifier.messages.last, 'still failing'
+  end
+
+  def test_bang_method_passes_args_to_callbacks
+    bug = Bug.new
+    bug.close!
+    bug.reopen!(reason: 'performance regression')
+    assert_equal 'performance regression', bug.reopen_reason
+    assert_includes Bug::Notifier.messages.last, 'performance regression'
+  end
+
   def test_if_condition
     bug = Bug.new
     assert_raises do

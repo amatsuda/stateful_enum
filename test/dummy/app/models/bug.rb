@@ -27,6 +27,19 @@ class Bug < ActiveRecord::Base
 
       transition all - [:closed] => :closed
     end
+
+    # for testing callback args
+    event :reopen do
+      before do |reason:|
+        self.reopen_reason = reason
+      end
+
+      after do |reason:|
+        Notifier.notify "Bug##{id} has been reopened: #{reason}"
+      end
+
+      transition [:resolved, :closed] => :unassigned
+    end
   }
 
   if Rails::VERSION::MAJOR >= 7

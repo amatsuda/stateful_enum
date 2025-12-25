@@ -122,6 +122,29 @@ end
 
 You can define `before` and `after` event hooks inside of an `event` block.
 
+Event methods accept arguments (both positional and keyword arguments) that are passed through to the callbacks:
+
+```ruby
+class Bug < ApplicationRecord
+  enum :status, {unassigned: 0, assigned: 1, resolved: 2, closed: 3} do
+    event :close do
+      before do |closed_by:, reason: nil|
+        self.closed_by = closed_by
+        self.close_reason = reason
+      end
+
+      after do |closed_by:, **|
+        Notifier.notify "Bug##{id} was closed by #{closed_by.name}"
+      end
+
+      transition all - [:closed] => :closed
+    end
+  end
+end
+
+@bug.close(closed_by: current_user, reason: 'Duplicate')
+```
+
 ### Inspecting All Defined Events And Current Possible Events
 
 You can get the list of defined events from the model class:
