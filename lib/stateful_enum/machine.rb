@@ -46,19 +46,20 @@ module StatefulEnum
             to, condition = transitions[send(column).to_sym]
             #TODO better error
             if to && (condition.nil? || instance_exec(&condition))
-              #TODO transaction?
-              before.each do |before_callback|
-                instance_exec(*args, **kwargs, &before_callback)
+              transaction do
+                before.each do |before_callback|
+                  instance_exec(*args, **kwargs, &before_callback)
+                end
+
+                original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
+                ret = original_method.bind(self).call
+
+                after.each do |after_callback|
+                  instance_exec(*args, **kwargs, &after_callback)
+                end
+
+                ret
               end
-
-              original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
-              ret = original_method.bind(self).call
-
-              after.each do |after_callback|
-                instance_exec(*args, **kwargs, &after_callback)
-              end
-
-              ret
             else
               false
             end
